@@ -2,6 +2,7 @@ package com.github.jesusmrs05.client.mixin;
 
 import com.github.jesusmrs05.client.MCOGotoClient;
 import com.github.jesusmrs05.client.config.MCOGotoConfig;
+import com.github.jesusmrs05.client.markers.MCOGotoResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -52,12 +53,24 @@ public abstract class MCOGotoCommandMixin {
 			);
 
 			if (client.player != null) {
-				client.player.sendSystemMessage(
-						message
-				);
+				client.player.sendSystemMessage(message);
 			}
 
 			ci.cancel();
+
+			String location =
+					command.length() > 4
+							? command.substring(5).trim()
+							: "";
+
+			if (!location.isEmpty()) {
+				MCOGotoResolver.resolve(
+						client,
+						config,
+						location
+				);
+			}
+
 			return;
 		}
 

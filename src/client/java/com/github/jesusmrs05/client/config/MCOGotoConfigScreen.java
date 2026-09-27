@@ -31,12 +31,13 @@ public final class MCOGotoConfigScreen extends Screen {
     private final MCOGotoConfig config;
 
     private EditBox tpCommandField;
-    private EditBox searchEndpointField;
-    private EditBox pageEndpointField;
-    private EditBox xExtractionField;
-    private EditBox yExtractionField;
-    private EditBox zExtractionField;
-    private EditBox dimensionExtractionField;
+    private EditBox locationsEndpointField;
+    private EditBox markerPathField;
+    private EditBox namePathField;
+    private EditBox xPathField;
+    private EditBox yPathField;
+    private EditBox zPathField;
+    private EditBox dimensionRegexField;
 
     private Button enabledButton;
 
@@ -50,9 +51,7 @@ public final class MCOGotoConfigScreen extends Screen {
             Screen previousScreen,
             MCOGotoConfig config
     ) {
-        super(
-                Component.literal("MCO Goto")
-        );
+        super(Component.literal("MCO Goto"));
 
         this.previousScreen = previousScreen;
         this.config = config;
@@ -91,7 +90,7 @@ public final class MCOGotoConfigScreen extends Screen {
         rowHeight =
                 Math.max(
                         ROW_MIN_HEIGHT,
-                        availableSettingsHeight / 7
+                        availableSettingsHeight / 8
                 );
 
         enabledButton = Button.builder(
@@ -112,9 +111,7 @@ public final class MCOGotoConfigScreen extends Screen {
                 ENABLED_HEIGHT
         ).build();
 
-        addRenderableWidget(
-                enabledButton
-        );
+        addRenderableWidget(enabledButton);
 
         int y = SETTINGS_TOP;
 
@@ -124,9 +121,7 @@ public final class MCOGotoConfigScreen extends Screen {
                 config.getTpCommand()
         );
 
-        addRenderableWidget(
-                tpCommandField
-        );
+        addRenderableWidget(tpCommandField);
 
         addRenderableWidget(
                 createResetButton(
@@ -139,119 +134,128 @@ public final class MCOGotoConfigScreen extends Screen {
 
         y += rowHeight;
 
-        searchEndpointField = createField(
-                "Search endpoint",
+        locationsEndpointField = createField(
+                "Locations endpoint",
                 y,
-                config.getSearchEndpoint()
+                config.getLocationsEndpoint()
         );
 
-        addRenderableWidget(
-                searchEndpointField
-        );
+        addRenderableWidget(locationsEndpointField);
 
         addRenderableWidget(
                 createResetButton(
                         y,
-                        () -> searchEndpointField.setValue(
-                                "https://minecraftonline.com/w/api.php?action=query&list=search&format=json&srsearch={query}"
+                        () -> locationsEndpointField.setValue(
+                                "https://map.minecraftonline.com/markersDB.js"
                         )
                 )
         );
 
         y += rowHeight;
 
-        pageEndpointField = createField(
-                "Page endpoint",
+        markerPathField = createField(
+                "Marker path",
                 y,
-                config.getPageEndpoint()
+                config.getMarkerPath()
         );
 
-        addRenderableWidget(
-                pageEndpointField
-        );
+        addRenderableWidget(markerPathField);
 
         addRenderableWidget(
                 createResetButton(
                         y,
-                        () -> pageEndpointField.setValue(
-                                "https://minecraftonline.com/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&format=json&titles={page}"
+                        () -> markerPathField.setValue(
+                                "$.*.raw[*]"
                         )
                 )
         );
 
         y += rowHeight;
 
-        xExtractionField = createField(
-                "X extraction",
+        namePathField = createField(
+                "Name path",
                 y,
-                config.getXExtraction()
+                config.getNamePath()
         );
 
-        addRenderableWidget(
-                xExtractionField
-        );
+        addRenderableWidget(namePathField);
 
         addRenderableWidget(
                 createResetButton(
                         y,
-                        () -> xExtractionField.setValue("")
+                        () -> namePathField.setValue(
+                                "hovertext"
+                        )
                 )
         );
 
         y += rowHeight;
 
-        yExtractionField = createField(
-                "Y extraction",
+        xPathField = createField(
+                "X path",
                 y,
-                config.getYExtraction()
+                config.getXPath()
         );
 
-        addRenderableWidget(
-                yExtractionField
-        );
+        addRenderableWidget(xPathField);
 
         addRenderableWidget(
                 createResetButton(
                         y,
-                        () -> yExtractionField.setValue("")
+                        () -> xPathField.setValue("x")
                 )
         );
 
         y += rowHeight;
 
-        zExtractionField = createField(
-                "Z extraction",
+        yPathField = createField(
+                "Y path",
                 y,
-                config.getZExtraction()
+                config.getYPath()
         );
 
-        addRenderableWidget(
-                zExtractionField
-        );
+        addRenderableWidget(yPathField);
 
         addRenderableWidget(
                 createResetButton(
                         y,
-                        () -> zExtractionField.setValue("")
+                        () -> yPathField.setValue("y")
                 )
         );
 
         y += rowHeight;
 
-        dimensionExtractionField = createField(
-                "Dimension extraction",
+        zPathField = createField(
+                "Z path",
                 y,
-                config.getDimensionExtraction()
+                config.getZPath()
         );
 
-        addRenderableWidget(
-                dimensionExtractionField
-        );
+        addRenderableWidget(zPathField);
 
         addRenderableWidget(
                 createResetButton(
                         y,
-                        () -> dimensionExtractionField.setValue("")
+                        () -> zPathField.setValue("z")
+                )
+        );
+
+        y += rowHeight;
+
+        dimensionRegexField = createField(
+                "Dimension regex",
+                y,
+                config.getDimensionRegex()
+        );
+
+        addRenderableWidget(dimensionRegexField);
+
+        addRenderableWidget(
+                createResetButton(
+                        y,
+                        () -> dimensionRegexField.setValue(
+                                "^.+_(overworld|nether|end)$"
+                        )
                 )
         );
 
@@ -284,8 +288,8 @@ public final class MCOGotoConfigScreen extends Screen {
                 Component.literal(name)
         );
 
-        field.setValue(value);
         field.setMaxLength(4096);
+        field.setValue(value);
 
         return field;
     }
@@ -350,7 +354,7 @@ public final class MCOGotoConfigScreen extends Screen {
         graphics.text(
                 font,
                 Component.literal(
-                        "Use these placeholders in the TP command template; extraction fields define how each value is found."
+                        "Paths control how marker data is extracted from markersDB.js."
                 ),
                 contentLeft,
                 SECOND_DESCRIPTION_Y,
@@ -366,38 +370,44 @@ public final class MCOGotoConfigScreen extends Screen {
 
         drawLabel(
                 graphics,
-                "Search endpoint",
+                "Locations endpoint",
                 SETTINGS_TOP + rowHeight
         );
 
         drawLabel(
                 graphics,
-                "Page endpoint",
+                "Marker path",
                 SETTINGS_TOP + rowHeight * 2
         );
 
         drawLabel(
                 graphics,
-                "X extraction",
+                "Name path",
                 SETTINGS_TOP + rowHeight * 3
         );
 
         drawLabel(
                 graphics,
-                "Y extraction",
+                "X path",
                 SETTINGS_TOP + rowHeight * 4
         );
 
         drawLabel(
                 graphics,
-                "Z extraction",
+                "Y path",
                 SETTINGS_TOP + rowHeight * 5
         );
 
         drawLabel(
                 graphics,
-                "Dimension extraction",
+                "Z path",
                 SETTINGS_TOP + rowHeight * 6
+        );
+
+        drawLabel(
+                graphics,
+                "Dimension regex",
+                SETTINGS_TOP + rowHeight * 7
         );
     }
 
@@ -422,28 +432,32 @@ public final class MCOGotoConfigScreen extends Screen {
                 tpCommandField.getValue()
         );
 
-        config.setSearchEndpoint(
-                searchEndpointField.getValue()
+        config.setLocationsEndpoint(
+                locationsEndpointField.getValue()
         );
 
-        config.setPageEndpoint(
-                pageEndpointField.getValue()
+        config.setMarkerPath(
+                markerPathField.getValue()
         );
 
-        config.setXExtraction(
-                xExtractionField.getValue()
+        config.setNamePath(
+                namePathField.getValue()
         );
 
-        config.setYExtraction(
-                yExtractionField.getValue()
+        config.setXPath(
+                xPathField.getValue()
         );
 
-        config.setZExtraction(
-                zExtractionField.getValue()
+        config.setYPath(
+                yPathField.getValue()
         );
 
-        config.setDimensionExtraction(
-                dimensionExtractionField.getValue()
+        config.setZPath(
+                zPathField.getValue()
+        );
+
+        config.setDimensionRegex(
+                dimensionRegexField.getValue()
         );
 
         config.save();
