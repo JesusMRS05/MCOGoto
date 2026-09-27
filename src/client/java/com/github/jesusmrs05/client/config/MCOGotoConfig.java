@@ -26,19 +26,26 @@ public final class MCOGotoConfig {
     private String tpCommand =
             "/tpto {x} {y} {z} {dimension}";
 
-    private String searchEndpoint =
-            "https://minecraftonline.com/w/api.php?action=query&list=search&format=json&srsearch={query}";
+    private String locationsEndpoint =
+            "https://map.minecraftonline.com/markersDB.js";
 
-    private String pageEndpoint =
-            "https://minecraftonline.com/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&format=json&titles={page}";
+    private String markerPath =
+            "$.*.raw[*]";
 
-    private String xExtraction = "";
+    private String namePath =
+            "hovertext";
 
-    private String yExtraction = "";
+    private String xPath =
+            "x";
 
-    private String zExtraction = "";
+    private String yPath =
+            "y";
 
-    private String dimensionExtraction = "";
+    private String zPath =
+            "z";
+
+    private String dimensionRegex =
+            "^.+_(overworld|nether|end)$";
 
     private MCOGotoConfig() {
     }
@@ -53,47 +60,106 @@ public final class MCOGotoConfig {
 
         try {
             String json = Files.readString(CONFIG_PATH);
-            JsonObject object = JsonParser.parseString(json).getAsJsonObject();
+            JsonObject object =
+                    JsonParser.parseString(json)
+                            .getAsJsonObject();
 
             if (object.has("enabled")) {
-                config.enabled = object.get("enabled").getAsBoolean();
+                config.enabled =
+                        object.get("enabled")
+                                .getAsBoolean();
             }
 
             if (object.has("tpCommand")) {
-                config.tpCommand = object.get("tpCommand").getAsString();
+                String value =
+                        object.get("tpCommand")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.tpCommand = value;
+                }
             }
 
-            if (object.has("searchEndpoint")) {
-                config.searchEndpoint =
-                        object.get("searchEndpoint").getAsString();
+            if (object.has("locationsEndpoint")) {
+                String value =
+                        object.get("locationsEndpoint")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.locationsEndpoint = value;
+                }
             }
 
-            if (object.has("pageEndpoint")) {
-                config.pageEndpoint =
-                        object.get("pageEndpoint").getAsString();
+            if (object.has("markerPath")) {
+                String value =
+                        object.get("markerPath")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.markerPath = value;
+                }
             }
 
-            if (object.has("xExtraction")) {
-                config.xExtraction =
-                        object.get("xExtraction").getAsString();
+            if (object.has("namePath")) {
+                String value =
+                        object.get("namePath")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.namePath = value;
+                }
             }
 
-            if (object.has("yExtraction")) {
-                config.yExtraction =
-                        object.get("yExtraction").getAsString();
+            if (object.has("xPath")) {
+                String value =
+                        object.get("xPath")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.xPath = value;
+                }
             }
 
-            if (object.has("zExtraction")) {
-                config.zExtraction =
-                        object.get("zExtraction").getAsString();
+            if (object.has("yPath")) {
+                String value =
+                        object.get("yPath")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.yPath = value;
+                }
             }
 
-            if (object.has("dimensionExtraction")) {
-                config.dimensionExtraction =
-                        object.get("dimensionExtraction").getAsString();
+            if (object.has("zPath")) {
+                String value =
+                        object.get("zPath")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.zPath = value;
+                }
             }
+
+            if (object.has("dimensionRegex")) {
+                String value =
+                        object.get("dimensionRegex")
+                                .getAsString();
+
+                if (!value.isBlank()) {
+                    config.dimensionRegex = value;
+                }
+            }
+
+            /*
+             * Rewrite the config so newly introduced defaults
+             * are persisted immediately.
+             */
+            config.save();
+
         } catch (Exception ignored) {
-            // If the config cannot be read, keep the default values.
+            /*
+             * If the config cannot be read, keep the default values.
+             */
         }
 
         return config;
@@ -104,19 +170,22 @@ public final class MCOGotoConfig {
 
         object.addProperty("enabled", enabled);
         object.addProperty("tpCommand", tpCommand);
-        object.addProperty("searchEndpoint", searchEndpoint);
-        object.addProperty("pageEndpoint", pageEndpoint);
-        object.addProperty("xExtraction", xExtraction);
-        object.addProperty("yExtraction", yExtraction);
-        object.addProperty("zExtraction", zExtraction);
-        object.addProperty("dimensionExtraction", dimensionExtraction);
+        object.addProperty("locationsEndpoint", locationsEndpoint);
+        object.addProperty("markerPath", markerPath);
+        object.addProperty("namePath", namePath);
+        object.addProperty("xPath", xPath);
+        object.addProperty("yPath", yPath);
+        object.addProperty("zPath", zPath);
+        object.addProperty("dimensionRegex", dimensionRegex);
 
         try {
             Files.createDirectories(CONFIG_PATH.getParent());
+
             Files.writeString(
                     CONFIG_PATH,
                     GSON.toJson(object)
             );
+
         } catch (IOException ignored) {
             // Config saving failure should not prevent the mod from running.
         }
@@ -138,64 +207,73 @@ public final class MCOGotoConfig {
         this.tpCommand = tpCommand;
     }
 
-    public String getSearchEndpoint() {
-        return searchEndpoint;
+    public String getLocationsEndpoint() {
+        return locationsEndpoint;
     }
 
-    public void setSearchEndpoint(String searchEndpoint) {
-        this.searchEndpoint = searchEndpoint;
+    public void setLocationsEndpoint(String locationsEndpoint) {
+        this.locationsEndpoint = locationsEndpoint;
     }
 
-    public String getPageEndpoint() {
-        return pageEndpoint;
+    public String getMarkerPath() {
+        return markerPath;
     }
 
-    public void setPageEndpoint(String pageEndpoint) {
-        this.pageEndpoint = pageEndpoint;
+    public void setMarkerPath(String markerPath) {
+        this.markerPath = markerPath;
     }
 
-    public String getXExtraction() {
-        return xExtraction;
+    public String getNamePath() {
+        return namePath;
     }
 
-    public void setXExtraction(String xExtraction) {
-        this.xExtraction = xExtraction;
+    public void setNamePath(String namePath) {
+        this.namePath = namePath;
     }
 
-    public String getYExtraction() {
-        return yExtraction;
+    public String getXPath() {
+        return xPath;
     }
 
-    public void setYExtraction(String yExtraction) {
-        this.yExtraction = yExtraction;
+    public void setXPath(String xPath) {
+        this.xPath = xPath;
     }
 
-    public String getZExtraction() {
-        return zExtraction;
+    public String getYPath() {
+        return yPath;
     }
 
-    public void setZExtraction(String zExtraction) {
-        this.zExtraction = zExtraction;
+    public void setYPath(String yPath) {
+        this.yPath = yPath;
     }
 
-    public String getDimensionExtraction() {
-        return dimensionExtraction;
+    public String getZPath() {
+        return zPath;
     }
 
-    public void setDimensionExtraction(String dimensionExtraction) {
-        this.dimensionExtraction = dimensionExtraction;
+    public void setZPath(String zPath) {
+        this.zPath = zPath;
+    }
+
+    public String getDimensionRegex() {
+        return dimensionRegex;
+    }
+
+    public void setDimensionRegex(String dimensionRegex) {
+        this.dimensionRegex = dimensionRegex;
     }
 
     public void reset() {
         enabled = true;
         tpCommand = "/tpto {x} {y} {z} {dimension}";
-        searchEndpoint =
-                "https://minecraftonline.com/w/api.php?action=query&list=search&format=json&srsearch={query}";
-        pageEndpoint =
-                "https://minecraftonline.com/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&format=json&titles={page}";
-        xExtraction = "";
-        yExtraction = "";
-        zExtraction = "";
-        dimensionExtraction = "";
+        locationsEndpoint =
+                "https://map.minecraftonline.com/markersDB.js";
+        markerPath = "$.*.raw[*]";
+        namePath = "hovertext";
+        xPath = "x";
+        yPath = "y";
+        zPath = "z";
+        dimensionRegex =
+                "^.+_(overworld|nether|end)$";
     }
 }

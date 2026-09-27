@@ -3,7 +3,7 @@
 	"package": "com.github.jesusmrs05.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"ExampleClientMixin"
+		"MCOGotoCommandMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
