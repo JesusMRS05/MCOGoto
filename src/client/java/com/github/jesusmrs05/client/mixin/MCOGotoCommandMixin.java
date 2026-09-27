@@ -75,7 +75,7 @@ public abstract class MCOGotoCommandMixin {
 		}
 
 		Component message = Component.literal(
-				"MCO Goto is "
+				"MCO Goto (unofficial) is "
 		).withStyle(
 				ChatFormatting.WHITE
 		).append(

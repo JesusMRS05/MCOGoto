@@ -24,10 +24,22 @@ public final class MCOGotoResolver {
     ) {
         MarkersDbFetcher.fetch(config)
                 .thenApply(
-                        source -> MarkersDbParser.parse(
-                                source,
-                                config
-                        )
+                        source -> {
+                            List<Marker> markers =
+                                    MarkersDbParser.parse(
+                                            source,
+                                            config
+                                    );
+
+                            try {
+                                MarkersDbCache.save(source);
+                            } catch (Exception exception) {
+                                // Failure to update the cache must not
+                                // prevent using the freshly downloaded data.
+                            }
+
+                            return markers;
+                        }
                 )
                 .thenAccept(
                         markers ->
@@ -43,18 +55,12 @@ public final class MCOGotoResolver {
                 )
                 .exceptionally(
                         throwable -> {
-                            runOnClientThread(
+                            return tryLocalFallback(
                                     client,
-                                    () -> sendError(
-                                            client,
-                                            "Failed to load locations: "
-                                                    + getMessage(
-                                                    throwable
-                                            )
-                                    )
+                                    config,
+                                    location,
+                                    throwable
                             );
-
-                            return null;
                         }
                 );
     }
@@ -489,5 +495,82 @@ public final class MCOGotoResolver {
                 ? message
                 : cause.getClass()
                 .getSimpleName();
+    }
+
+    private static Void tryLocalFallback(
+            Minecraft client,
+            MCOGotoConfig config,
+            String location,
+            Throwable endpointFailure
+    ) {
+        String endpointError =
+                "Failed to load locations: "
+                        + getMessage(endpointFailure);
+
+        runOnClientThread(
+                client,
+                () -> sendError(
+                        client,
+                        endpointError
+                )
+        );
+
+        if (!MarkersDbCache.exists()) {
+            runOnClientThread(
+                    client,
+                    () -> sendError(
+                            client,
+                            "No local copy of the marker database was found at "
+                                    + MarkersDbCache.getRelativePath()
+                    )
+            );
+
+            return null;
+        }
+
+        try {
+            String source =
+                    MarkersDbCache.read();
+
+            List<Marker> markers =
+                    MarkersDbParser.parse(
+                            source,
+                            config
+                    );
+
+            runOnClientThread(
+                    client,
+                    () -> {
+                        if (client.player != null) {
+                            client.player.sendSystemMessage(
+                                    Component.literal(
+                                            "Marker endpoint failed. Falling back to local copy "
+                                                    + MarkersDbCache.getRelativePath()
+                                    ).withStyle(
+                                            ChatFormatting.RED
+                                    )
+                            );
+                        }
+
+                        handleResults(
+                                client,
+                                config,
+                                location,
+                                markers
+                        );
+                    }
+            );
+
+        } catch (Exception cacheFailure) {
+            runOnClientThread(
+                    client,
+                    () -> sendError(
+                            client,
+                            "Local copy of the marker database could not be loaded."
+                    )
+            );
+        }
+
+        return null;
     }
 }
