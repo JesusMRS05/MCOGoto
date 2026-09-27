@@ -9,6 +9,11 @@ repositories {
 	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
 	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
 	// for more information about repositories.
+
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+	}
 }
 
 loom {
@@ -29,6 +34,12 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// MaLiLib
+	clientImplementation "maven.modrinth:GcWjdA9I:KvjmGjAV"
+
+	// Mod Menu
+	clientImplementation "maven.modrinth:mOgUt4GM:WdLLrOzD"
 }
 
 processResources {
@@ -75,7 +86,7 @@ publishing {
 	repositories {
 		// Add repositories to publish to here.
 		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
+		// The repositories here will be used to publish your artifact, not for
 		// retrieving dependencies.
 	}
 }

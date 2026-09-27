@@ -1,10 +1,19 @@
 package com.github.jesusmrs05.client;
 
+import com.github.jesusmrs05.client.config.MCOGotoConfig;
 import net.fabricmc.api.ClientModInitializer;
 
-public class MCOGotoClient implements ClientModInitializer {
+public final class MCOGotoClient
+		implements ClientModInitializer {
+
+	private static MCOGotoConfig config;
+
 	@Override
 	public void onInitializeClient() {
-		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
+		config = MCOGotoConfig.load();
+	}
+
+	public static MCOGotoConfig getConfig() {
+		return config;
 	}
 }

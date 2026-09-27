@@ -3,23 +3,26 @@
 	"id": "mco-goto",
 	"version": "${version}",
 	"name": "MCO Goto",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Client-side MinecraftOnline wiki location lookup and teleport automation.",
 	"authors": [
-		"Me!"
+		"JesusMRS05"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/JesusMRS05",
+		"sources": "https://github.com/JesusMRS05/MCOGoto"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/mco-goto/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"com.github.jesusmrs05.MCOGoto"
 		],
 		"client": [
 			"com.github.jesusmrs05.client.MCOGotoClient"
+		],
+		"modmenu": [
+			"com.github.jesusmrs05.client.config.MCOGotoModMenu"
 		]
 	},
 	"mixins": [
@@ -33,6 +36,12 @@
 		"fabricloader": ">=0.19.5",
 		"minecraft": "~26.2",
 		"java": ">=25",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"malilib": "*",
+		"modmenu": "*"
+	},
+	"recommends": {
+		"malilib": "*",
+		"modmenu": "*"
 	}
 }
