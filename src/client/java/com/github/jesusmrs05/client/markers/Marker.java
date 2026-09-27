@@ -5,5 +5,6 @@ public record Marker(
         double x,
         double y,
         double z,
-        String dimension
+        String dimension,
+        String wikiUrl
 ) {}

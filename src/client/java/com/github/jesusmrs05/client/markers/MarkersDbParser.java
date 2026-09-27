@@ -15,6 +15,12 @@ public final class MarkersDbParser {
 
     private static final String DEFAULT_DIMENSION = "overworld";
 
+    private static final Pattern WIKI_URL_PATTERN =
+            Pattern.compile(
+                    "<a\\s+href=\\\"([^\\\"]*?/wiki/[^\\\"]*)\\\"",
+                    Pattern.CASE_INSENSITIVE
+            );
+
     private MarkersDbParser() {
     }
 
@@ -99,6 +105,11 @@ public final class MarkersDbParser {
                                 config.getZPath()
                         );
 
+                String wikiUrl =
+                        extractWikiUrl(
+                                marker
+                        );
+
                 if (name == null
                         || x == null
                         || y == null
@@ -112,7 +123,8 @@ public final class MarkersDbParser {
                                 x,
                                 y,
                                 z,
-                                dimension
+                                dimension,
+                                wikiUrl
                         )
                 );
             }
@@ -214,6 +226,42 @@ public final class MarkersDbParser {
         }
 
         return result;
+    }
+
+    private static String extractWikiUrl(
+            JsonObject marker
+    ) {
+        JsonElement textElement =
+                marker.get("text");
+
+        if (textElement == null
+                || textElement.isJsonNull()) {
+            return "";
+        }
+
+        String text;
+
+        try {
+            text = textElement.getAsString();
+        } catch (Exception exception) {
+            return "";
+        }
+
+        Matcher matcher =
+                WIKI_URL_PATTERN.matcher(text);
+
+        if (!matcher.find()) {
+            return "";
+        }
+
+        String url =
+                matcher.group(1);
+
+        if (url.startsWith("/")) {
+            return "https://minecraftonline.com" + url;
+        }
+
+        return url;
     }
 
     private static String extractDimension(

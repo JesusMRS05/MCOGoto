@@ -1,8 +1,10 @@
 package com.github.jesusmrs05.client.config;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.ScrollableLayout;
+import net.minecraft.client.gui.components.StringWidget;
+import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -14,15 +16,16 @@ public final class MCOGotoConfigScreen extends Screen {
     private static final int BUTTON_WIDTH = 80;
     private static final int FIELD_BUTTON_GAP = 8;
 
-    private static final int HEADER_TOP = 18;
-    private static final int DESCRIPTION_Y = 31;
-    private static final int SECOND_DESCRIPTION_Y = 43;
-
     private static final int ENABLED_TOP = 56;
     private static final int ENABLED_HEIGHT = 20;
 
-    private static final int SETTINGS_TOP = 82;
-    private static final int ROW_MIN_HEIGHT = 34;
+    private static final int SCROLL_TOP = 82;
+    private static final int SCROLL_BOTTOM_MARGIN = 38;
+
+    private static final int LABEL_HEIGHT = 12;
+    private static final int FIELD_HEIGHT = 20;
+    private static final int LABEL_FIELD_GAP = 3;
+    private static final int ROW_GAP = 6;
 
     private static final int DONE_HEIGHT = 20;
     private static final int DONE_BOTTOM_MARGIN = 12;
@@ -41,11 +44,13 @@ public final class MCOGotoConfigScreen extends Screen {
 
     private Button enabledButton;
 
+    private ScrollableLayout scrollableLayout;
+
     private int contentLeft;
     private int contentWidth;
     private int fieldWidth;
     private int resetLeft;
-    private int rowHeight;
+    private int scrollHeight;
 
     public MCOGotoConfigScreen(
             Screen previousScreen,
@@ -84,15 +89,14 @@ public final class MCOGotoConfigScreen extends Screen {
                         - DONE_BOTTOM_MARGIN
                         - DONE_HEIGHT;
 
-        int availableSettingsHeight =
-                doneY - SETTINGS_TOP - 8;
+        scrollHeight =
+                doneY
+                        - SCROLL_TOP
+                        - SCROLL_BOTTOM_MARGIN;
 
-        rowHeight =
-                Math.max(
-                        ROW_MIN_HEIGHT,
-                        availableSettingsHeight / 8
-                );
-
+        /*
+         * Enabled stays outside the scroll area.
+         */
         enabledButton = Button.builder(
                 getEnabledText(),
                 button -> {
@@ -113,153 +117,129 @@ public final class MCOGotoConfigScreen extends Screen {
 
         addRenderableWidget(enabledButton);
 
-        int y = SETTINGS_TOP;
+        /*
+         * Everything below this point belongs to the
+         * ScrollableLayout.
+         */
+        LinearLayout content =
+                LinearLayout.vertical()
+                        .spacing(ROW_GAP);
 
-        tpCommandField = createField(
+        tpCommandField = addRow(
+                content,
                 "TP command",
-                y,
-                config.getTpCommand()
-        );
-
-        addRenderableWidget(tpCommandField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> tpCommandField.setValue(
-                                "/tpto {x} {y} {z} {dimension}"
-                        )
+                config.getTpCommand(),
+                () -> tpCommandField.setValue(
+                        "/tpto {x} {y} {z} {dimension}"
                 )
         );
 
-        y += rowHeight;
-
-        locationsEndpointField = createField(
+        locationsEndpointField = addRow(
+                content,
                 "Locations endpoint",
-                y,
-                config.getLocationsEndpoint()
-        );
-
-        addRenderableWidget(locationsEndpointField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> locationsEndpointField.setValue(
-                                "https://map.minecraftonline.com/markersDB.js"
-                        )
+                config.getLocationsEndpoint(),
+                () -> locationsEndpointField.setValue(
+                        "https://map.minecraftonline.com/markersDB.js"
                 )
         );
 
-        y += rowHeight;
-
-        markerPathField = createField(
+        markerPathField = addRow(
+                content,
                 "Marker path",
-                y,
-                config.getMarkerPath()
-        );
-
-        addRenderableWidget(markerPathField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> markerPathField.setValue(
-                                "$.*.raw[*]"
-                        )
+                config.getMarkerPath(),
+                () -> markerPathField.setValue(
+                        "$.*.raw[*]"
                 )
         );
 
-        y += rowHeight;
-
-        namePathField = createField(
+        namePathField = addRow(
+                content,
                 "Name path",
-                y,
-                config.getNamePath()
-        );
-
-        addRenderableWidget(namePathField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> namePathField.setValue(
-                                "hovertext"
-                        )
+                config.getNamePath(),
+                () -> namePathField.setValue(
+                        "hovertext"
                 )
         );
 
-        y += rowHeight;
-
-        xPathField = createField(
+        xPathField = addRow(
+                content,
                 "X path",
-                y,
-                config.getXPath()
-        );
-
-        addRenderableWidget(xPathField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> xPathField.setValue("x")
+                config.getXPath(),
+                () -> xPathField.setValue(
+                        "x"
                 )
         );
 
-        y += rowHeight;
-
-        yPathField = createField(
+        yPathField = addRow(
+                content,
                 "Y path",
-                y,
-                config.getYPath()
-        );
-
-        addRenderableWidget(yPathField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> yPathField.setValue("y")
+                config.getYPath(),
+                () -> yPathField.setValue(
+                        "y"
                 )
         );
 
-        y += rowHeight;
-
-        zPathField = createField(
+        zPathField = addRow(
+                content,
                 "Z path",
-                y,
-                config.getZPath()
-        );
-
-        addRenderableWidget(zPathField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> zPathField.setValue("z")
+                config.getZPath(),
+                () -> zPathField.setValue(
+                        "z"
                 )
         );
 
-        y += rowHeight;
-
-        dimensionRegexField = createField(
+        dimensionRegexField = addRow(
+                content,
                 "Dimension regex",
-                y,
-                config.getDimensionRegex()
-        );
-
-        addRenderableWidget(dimensionRegexField);
-
-        addRenderableWidget(
-                createResetButton(
-                        y,
-                        () -> dimensionRegexField.setValue(
-                                "^.+_(overworld|nether|end)$"
-                        )
+                config.getDimensionRegex(),
+                () -> dimensionRegexField.setValue(
+                        "^.+_(overworld|nether|end)$"
                 )
         );
 
-        addRenderableWidget(
+        /*
+         * The native 26.2 scroll container handles:
+         *
+         * - mouse wheel scrolling
+         * - clipping
+         * - widget positions
+         * - scrollbar
+         * - mouse/focus events
+         *
+         * We do NOT move widgets ourselves.
+         */
+        scrollableLayout =
+                new ScrollableLayout(
+                        minecraft,
+                        content,
+                        scrollHeight
+                );
+
+        scrollableLayout.setMinWidth(
+                contentWidth
+        );
+
+        scrollableLayout.setX(
+                contentLeft
+        );
+
+        scrollableLayout.setY(
+                SCROLL_TOP
+        );
+
+        scrollableLayout.arrangeElements();
+
+        /*
+         * Layout#visitWidgets() traverses the layout and exposes
+         * the ScrollableLayout's actual container widget to the
+         * Screen. The individual fields remain children of that
+         * container.
+         */
+        scrollableLayout.visitWidgets(
+                this::addRenderableWidget
+        );
+
+        Button doneButton =
                 Button.builder(
                         Component.literal("Done"),
                         button -> onClose()
@@ -268,166 +248,82 @@ public final class MCOGotoConfigScreen extends Screen {
                         doneY,
                         contentWidth,
                         DONE_HEIGHT
-                ).build()
-        );
+                ).build();
 
-        setInitialFocus(tpCommandField);
+        addRenderableWidget(doneButton);
     }
 
-    private EditBox createField(
-            String name,
-            int rowTop,
-            String value
+    private <T extends EditBox> T addRow(
+            LinearLayout content,
+            String labelText,
+            String value,
+            Runnable resetAction
     ) {
-        EditBox field = new EditBox(
-                font,
-                contentLeft,
-                rowTop + 11,
-                fieldWidth,
-                20,
-                Component.literal(name)
-        );
+        LinearLayout row =
+                LinearLayout.vertical()
+                        .spacing(LABEL_FIELD_GAP);
+
+        StringWidget label =
+                new StringWidget(
+                        fieldWidth,
+                        LABEL_HEIGHT,
+                        Component.literal(labelText),
+                        font
+                );
+
+        row.addChild(label);
+
+        LinearLayout controls =
+                LinearLayout.horizontal()
+                        .spacing(FIELD_BUTTON_GAP);
+
+        T field =
+                (T) new EditBox(
+                        font,
+                        0,
+                        0,
+                        fieldWidth,
+                        FIELD_HEIGHT,
+                        Component.literal(labelText)
+                );
 
         field.setMaxLength(4096);
         field.setValue(value);
 
+        controls.addChild(field);
+
+        Button reset =
+                Button.builder(
+                        Component.literal("Reset"),
+                        button -> resetAction.run()
+                ).bounds(
+                        0,
+                        0,
+                        BUTTON_WIDTH,
+                        FIELD_HEIGHT
+                ).build();
+
+        controls.addChild(reset);
+
+        row.addChild(controls);
+
+        content.addChild(row);
+
         return field;
-    }
-
-    private Button createResetButton(
-            int rowTop,
-            Runnable resetAction
-    ) {
-        return Button.builder(
-                Component.literal("Reset"),
-                button -> resetAction.run()
-        ).bounds(
-                resetLeft,
-                rowTop + 11,
-                BUTTON_WIDTH,
-                20
-        ).build();
-    }
-
-    private Component getEnabledText() {
-        return Component.literal(
-                config.isEnabled()
-                        ? "Enabled: ON"
-                        : "Enabled: OFF"
-        );
-    }
-
-    @Override
-    public void extractRenderState(
-            GuiGraphicsExtractor graphics,
-            int mouseX,
-            int mouseY,
-            float partialTick
-    ) {
-        super.extractRenderState(
-                graphics,
-                mouseX,
-                mouseY,
-                partialTick
-        );
-
-        graphics.text(
-                font,
-                Component.literal("MCO Goto Configuration"),
-                contentLeft,
-                HEADER_TOP,
-                0xFFFFFFFF,
-                true
-        );
-
-        graphics.text(
-                font,
-                Component.literal(
-                        "{x}, {y}, {z}, and {dimension} are replaced with the location's values."
-                ),
-                contentLeft,
-                DESCRIPTION_Y,
-                0xFFAAAAAA,
-                false
-        );
-
-        graphics.text(
-                font,
-                Component.literal(
-                        "Paths control how marker data is extracted from markersDB.js."
-                ),
-                contentLeft,
-                SECOND_DESCRIPTION_Y,
-                0xFFAAAAAA,
-                false
-        );
-
-        drawLabel(
-                graphics,
-                "TP command template",
-                SETTINGS_TOP
-        );
-
-        drawLabel(
-                graphics,
-                "Locations endpoint",
-                SETTINGS_TOP + rowHeight
-        );
-
-        drawLabel(
-                graphics,
-                "Marker path",
-                SETTINGS_TOP + rowHeight * 2
-        );
-
-        drawLabel(
-                graphics,
-                "Name path",
-                SETTINGS_TOP + rowHeight * 3
-        );
-
-        drawLabel(
-                graphics,
-                "X path",
-                SETTINGS_TOP + rowHeight * 4
-        );
-
-        drawLabel(
-                graphics,
-                "Y path",
-                SETTINGS_TOP + rowHeight * 5
-        );
-
-        drawLabel(
-                graphics,
-                "Z path",
-                SETTINGS_TOP + rowHeight * 6
-        );
-
-        drawLabel(
-                graphics,
-                "Dimension regex",
-                SETTINGS_TOP + rowHeight * 7
-        );
-    }
-
-    private void drawLabel(
-            GuiGraphicsExtractor graphics,
-            String text,
-            int rowTop
-    ) {
-        graphics.text(
-                font,
-                Component.literal(text),
-                contentLeft,
-                rowTop,
-                0xFFFFFFFF,
-                true
-        );
     }
 
     @Override
     public void onClose() {
+        saveConfig();
+
+        if (minecraft != null) {
+            minecraft.gui.setScreen(
+                    previousScreen
+            );
+        }
+    }
+
+    private void saveConfig() {
         config.setTpCommand(
                 tpCommandField.getValue()
         );
@@ -461,11 +357,16 @@ public final class MCOGotoConfigScreen extends Screen {
         );
 
         config.save();
+    }
 
-        if (minecraft != null) {
-            minecraft.gui.setScreen(
-                    previousScreen
-            );
-        }
+    private Component getEnabledText() {
+        return Component.literal("Enabled: ")
+                .append(
+                        Component.literal(
+                                config.isEnabled()
+                                        ? "ON"
+                                        : "OFF"
+                        )
+                );
     }
 }
